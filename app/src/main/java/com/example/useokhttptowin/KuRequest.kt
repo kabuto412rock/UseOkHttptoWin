@@ -2,9 +2,12 @@ package com.example.useokhttptowin
 
 import android.os.Build
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jetbrains.anko.doAsync
 
 class KuRequest {
     private val client = OkHttpClient()
@@ -19,9 +22,18 @@ class KuRequest {
         return response.body()?.string()
     }
 
-    fun <T>getJson(url: String, classOfT: Class<T>): T {
-        val jsonStr = get(url)
-        return gson.fromJson(jsonStr, classOfT)
+    // 發送Get請求一個Json檔案並以JsonArray方式讀取&處理
+    fun handleJsonArray(url: String, handler: ((jsonArray: JsonArray)->Unit)) {
+        doAsync {
+            val jsonStr = get(url)
+            val jsonArray = gson.fromJson(jsonStr, JsonArray::class.java)
+            handler(jsonArray)
+        }
+    }
 
+    fun getJsonArray(url: String): JsonArray {
+        val jsonStr = get(url)
+        val jsonArray = gson.fromJson(jsonStr, JsonArray::class.java)
+        return jsonArray
     }
 }
